@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Road Quality - Deteksi Kerusakan Jalan</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+  <style>
+    /* Custom styles for a more refined look */
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+  <header id="header" class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-50">
+    <h1 class="text-2xl font-bold text-blue-700">RoadQuality</h1>
+    <nav class="hidden md:flex items-center space-x-6">
+      <a href="#" class="text-gray-600 hover:text-blue-700 transition">Beranda</a>
+      <a href="#" class="text-gray-600 hover:text-blue-700 transition">Peta</a>
+      <a href="#" class="text-gray-600 hover:text-blue-700 transition">Laporan</a>
+    </nav>
+    <div>
+      <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out transform hover:scale-105">
+        Deteksi via HP
+      </button>
+    </div>
+  </header>
+
+  <div id="modalHP" class="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center hidden z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-11/12 max-w-md p-6 transform scale-95 opacity-0" id="modalContent">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Mode Kamera HP</h2>
+        <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+      </div>
+      <p class="text-sm bg-blue-50 text-blue-800 p-3 rounded-lg mb-4">Gunakan kamera HP Anda untuk mendeteksi kerusakan jalan secara langsung. Pastikan izin kamera diaktifkan.</p>
+      <div class="flex justify-between mb-3 space-x-2">
+        <button id="btnDepan" onclick="switchCamera('user')" class="bg-blue-600 text-white py-2 rounded-lg flex-1 transition hover:bg-blue-700">Kamera Depan</button>
+        <button id="btnBelakang" onclick="switchCamera('environment')" class="bg-gray-200 text-gray-800 py-2 rounded-lg flex-1 transition hover:bg-gray-300">Kamera Belakang</button>
+      </div>
+      <video id="videoPreview" class="bg-black w-full h-52 rounded-lg border-2 border-gray-200" autoplay muted playsinline></video>
+      <div class="flex justify-end mt-4 space-x-3">
+        <button onclick="closeModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-5 py-2 rounded-lg transition">Batal</button>
+        <button onclick="startFullScreenCamera()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg transition">Mulai Deteksi</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="p-4 md:p-8 lg:p-10">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <section id="main-content" class="lg:col-span-2 space-y-6">
+        <div class="card bg-white rounded-xl shadow-lg p-5">
+          <h2 class="font-bold text-xl mb-3">Pemantauan Langsung CCTV</h2>
+          <div class="bg-gray-900 h-80 flex items-center justify-center rounded-lg mb-3 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1569017388730-020b5f80a054?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover" alt="Tampilan CCTV">
+          </div>
+          <div class="text-sm text-gray-500 flex justify-between items-center">
+            <span><strong class="text-gray-700">Lokasi:</strong> Ring Road Utara, Sleman</span>
+            <span id="live-time"></span>
+          </div>
+          <div class="mt-3 border-t pt-3 flex space-x-4 text-sm">
+            <a href="#" class="text-blue-600 hover:underline">Tangkapan Layar</a>
+            <a href="#" class="text-blue-600 hover:underline">Bagikan</a>
+            <a href="#" class="text-red-600 hover:underline">Laporkan Masalah</a>
+          </div>
+        </div>
+
+        <div class="card bg-white rounded-xl shadow-lg p-5">
+          <h2 class="font-bold text-xl mb-3">Hasil Analisis Terkini</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-3 text-center gap-4">
+            <div class="bg-red-100 text-red-800 p-4 rounded-lg">
+              <div class="text-3xl font-bold">1</div>
+              <div class="text-sm">Lubang Jalan</div>
+            </div>
+            <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg">
+              <div class="text-3xl font-bold">2</div>
+              <div class="text-sm">Jalan Retak</div>
+            </div>
+            <div class="bg-green-100 text-green-800 p-4 rounded-lg">
+              <div class="text-3xl font-bold">2</div>
+              <div class="text-sm">Jalan Tambalan</div>
+            </div>
+          </div>
+          <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4 text-sm text-yellow-900 rounded-r-lg">
+            <strong>Rekomendasi:</strong> Jalan ini memerlukan perhatian. Terdapat 1 lubang dan 2 retakan yang berpotensi membahayakan. Disarankan untuk melakukan perbaikan dalam 2 minggu ke depan.
+          </div>
+        </div>
+      </section>
+  
+      <aside id="sidebar" class="space-y-6">
+        <div class="card bg-white p-5 rounded-xl shadow-lg">
+          <h3 class="font-bold text-lg mb-3">Peta Lokasi CCTV</h3>
+          <div class="bg-gray-200 h-48 rounded-lg flex items-center justify-center">
+            <span class="text-gray-500">Peta Interaktif</span>
+          </div>
+        </div>
+
+        <div class="card bg-white p-5 rounded-xl shadow-lg">
+          <h3 class="font-bold text-lg mb-3">Statistik Kerusakan</h3>
+          <div class="space-y-3 text-sm">
+            <p class="flex justify-between">Total Terdeteksi: <strong class="text-xl font-bold text-red-600">127</strong></p>
+            <p class="flex justify-between">Sudah Diperbaiki: <strong class="text-xl font-bold text-green-600">78</strong></p>
+            <p class="flex justify-between">Dalam Proses: <strong class="text-xl font-bold text-yellow-600">49</strong></p>
+          </div>
+        </div>
+
+        <div class="card bg-white p-5 rounded-xl shadow-lg">
+          <h3 class="font-bold text-lg mb-3">Daftar Kamera Aktif</h3>
+          <ul class="text-sm space-y-2">
+            <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Malioboro</li>
+            <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Jl. Soekarno-Hatta</li>
+            <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Ring Road Utara</li>
+            <li class="flex items-center"><span class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>Kota Gede (Maintenance)</li>
+            <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Prawirotaman</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="bg-gray-800 text-white text-center p-5 mt-10">
+    <p class="text-sm">&copy; 2025 RoadQuality - Sistem Cerdas Deteksi Kerusakan Jalan</p>
+    <p class="text-xs text-gray-400 mt-1">Dikembangkan oleh CivicAI</p>
+  </footer>
+  
+  <script src="script.js"></script>
+</body>
+</html>
